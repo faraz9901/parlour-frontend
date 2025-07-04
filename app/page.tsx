@@ -7,12 +7,35 @@ import { Label } from "@/components/ui/label";
 
 import { validation } from "@/lib/validations";
 import { toast } from "sonner";
-import { api } from "@/lib/utils";
+import { api, getErrorMessage } from "@/lib/utils";
+import { AxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
+import useCurrentUser from "@/lib/store/user.store";
 
 export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { checkUserSession, isLoading, user } = useCurrentUser();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async ({ email, password }: { email: string, password: string }) => {
+      return await api.post('/auth/login', { email, password })
+    },
+    onSuccess: async () => {
+      const validUser = await checkUserSession();
+      if (validUser) {
+        toast.success("User logged in successfully")
+      } else {
+        toast.error("There was an error logging in ! Please try again")
+      }
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error as AxiosError));
+    }
+  })
+
+  console.log(user)
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,13 +52,7 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      console.log(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-
+    mutate({ email, password });
   }
 
 
@@ -55,7 +72,7 @@ export default function LoginPage() {
             <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
             <Input value={password} onChange={(e) => setPassword(e.target.value)} id="password" type="password" placeholder="••••••••" className="mt-1" required autoComplete="current-password" />
           </div>
-          <Button type="submit" className="w-full mt-2">Login</Button>
+          <Button type="submit" className="w-full mt-2" disabled={isPending || isLoading}>Login</Button>
         </form>
       </div>
     </div>

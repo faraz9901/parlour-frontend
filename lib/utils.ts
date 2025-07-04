@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -12,4 +12,22 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export { api, cn };
+
+const getErrorMessage = (error: AxiosError) => {
+
+  if (error.response?.data) {
+    const errorMessage = error.response.data as { message: string };
+    return errorMessage.message;
+  }
+
+  if (!error.response) {
+    return "Something went wrong"
+  }
+
+  return "Something went wrong";
+};
+
+export { api, cn, getErrorMessage };
+
+
+

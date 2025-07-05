@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,24 @@ import { api, getErrorMessage } from "@/lib/utils";
 import { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
 import useCurrentUser from "@/lib/store/user.store";
+import { Role } from "@/lib/enums";
+import { useRouter } from "next/navigation";
+import Password from "@/components/ui/password";
+
 
 export default function LoginPage() {
+  const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { checkUserSession, isLoading, user } = useCurrentUser();
+
+  useEffect(() => {
+    if (user) {
+      const path = user.role === Role.EMPLOYEE ? "/attendance" : "/dashboard";
+      router.replace(path);
+    }
+  }, [user])
 
   const { mutate, isPending } = useMutation({
     mutationFn: async ({ email, password }: { email: string, password: string }) => {
@@ -34,9 +46,6 @@ export default function LoginPage() {
       toast.error(getErrorMessage(error as AxiosError));
     }
   })
-
-  console.log(user)
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +79,7 @@ export default function LoginPage() {
           </div>
           <div>
             <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} id="password" type="password" placeholder="••••••••" className="mt-1" required autoComplete="current-password" />
+            <Password value={password} onChange={(e) => setPassword(e.target.value)} id="password" />
           </div>
           <Button type="submit" className="w-full mt-2" disabled={isPending || isLoading}>Login</Button>
         </form>

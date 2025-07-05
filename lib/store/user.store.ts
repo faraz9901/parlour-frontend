@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { api } from "../utils";
+import { Role } from "../enums";
 
 
-interface User {
+export interface User {
     _id: string;
     name: string;
     email: string;
-    role: string;
+    role: Role;
+    createdAt: string;
+    updatedAt: string;
 }
 
 interface UserStore {
@@ -25,9 +28,6 @@ const useCurrentUser = create<UserStore>((set) => ({
         set({ isLoading: true })
         try {
             const response = await api.get('/auth/check-session')
-
-            console.log(response.data)
-
             if (response.data.success) {
                 set({ user: response.data.content })
             } else {

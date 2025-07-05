@@ -5,7 +5,6 @@ import { Plus, Search, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -13,86 +12,161 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Role } from "@/lib/enums"
+import { toast } from "sonner"
+import { api, getErrorMessage } from "@/lib/utils"
+import { AxiosError } from "axios"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Skeleton } from "@/components/ui/skeleton"
+import { validation } from "@/lib/validations"
+import Password from "@/components/ui/password"
+import { Badge } from "@/components/ui/badge"
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog"
 
 type Employee = {
-  id: string
+  _id: string
   name: string
   email: string
-  phone: string
-  position: string
-  status: 'active' | 'inactive'
+  password: string
+  role: Role
+  createdAt?: string
+  updatedAt?: string
 }
 
 export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      position: "Stylist",
-      status: "active"
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1987654321",
-      position: "Receptionist",
-      status: "active"
-    }
-  ])
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [currentEmployee, setCurrentEmployee] = useState<Partial<Employee> | null>(null)
 
-  const filteredEmployees = employees.filter(employee =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const queryClient = useQueryClient()
+
+  const { data: employees, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response = await api.get('/users')
+      return response.data.content
+    },
+  })
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
+  const [mode, setMode] = useState<'create' | 'update'>('create')
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+
+
+  const { mutate: createUser, isPending: createUserPending } = useMutation({
+    mutationFn: async ({ employee }: { employee: Employee }) => {
+      return await api.post('/users/create', employee)
+    },
+    onSuccess: () => {
+      setIsDialogOpen(false)
+      setCurrentEmployee(null)
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success("Employee created successfully")
+    },
+    onError: (error: AxiosError) => {
+      toast.error(getErrorMessage(error))
+    }
+  })
+
+  const { mutate: updateUser, isPending: updateUserPending } = useMutation({
+    mutationFn: async ({ employee }: { employee: Employee }) => {
+      return await api.put(`/users/update/${employee._id}`, employee)
+    },
+    onSuccess: () => {
+      setIsDialogOpen(false)
+      setCurrentEmployee(null)
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success("Employee updated successfully")
+    },
+    onError: (error: AxiosError) => {
+      toast.error(getErrorMessage(error))
+    }
+  })
+
+  const { mutate: deleteUser, isPending: deleteUserPending } = useMutation({
+    mutationFn: async (id: string) => {
+      return await api.delete(`/users/delete/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setIsDeleteDialogOpen(false)
+      setCurrentEmployee(null)
+      toast.success("Employee deleted successfully")
+    },
+    onError: (error: AxiosError) => {
+      toast.error(getErrorMessage(error))
+    }
+  })
+
+
+  const filteredEmployees = employees
+
+  const handleDeleteEmployee = (employee: Employee) => {
+    setCurrentEmployee(employee)
+    setIsDeleteDialogOpen(true)
+  }
 
   const handleAddEmployee = () => {
+    setMode('create')
     setCurrentEmployee({
-      id: Date.now().toString(),
+      _id: "",
       name: "",
       email: "",
-      phone: "",
-      position: "",
-      status: "active"
+      password: "",
+      role: Role.EMPLOYEE,
     })
     setIsDialogOpen(true)
   }
 
   const handleEditEmployee = (employee: Employee) => {
-    setCurrentEmployee({ ...employee })
+    setMode('update')
+    setCurrentEmployee({ ...employee, password: "" })
     setIsDialogOpen(true)
-  }
-
-  const handleDeleteEmployee = (id: string) => {
-    if (confirm("Are you sure you want to delete this employee?")) {
-      setEmployees(employees.filter(emp => emp.id !== id))
-    }
   }
 
   const handleSaveEmployee = () => {
     if (!currentEmployee) return
-    
-    if (currentEmployee.id && employees.some(emp => emp.id === currentEmployee.id)) {
-      // Update existing employee
-      setEmployees(employees.map(emp => 
-        emp.id === currentEmployee.id ? currentEmployee as Employee : emp
-      ))
-    } else {
-      // Add new employee
-      setEmployees([...employees, currentEmployee as Employee])
+
+    const emailValidation = validation.email(currentEmployee.email);
+    const passwordValidation = validation.password(currentEmployee.password);
+    const nameValidation = validation.name(currentEmployee.name);
+    const roleValidation = validation.role(currentEmployee.role);
+
+    if (!emailValidation.valid) {
+      toast.error(emailValidation.message);
+      return;
     }
-    
-    setIsDialogOpen(false)
-    setCurrentEmployee(null)
+    if (mode === 'create' && !passwordValidation.valid) {
+      toast.error(passwordValidation.message);
+      return;
+    } else if (mode === 'update' && currentEmployee.password && !passwordValidation.valid) {
+      toast.error(passwordValidation.message);
+      return;
+    }
+
+    if (!nameValidation.valid) {
+      toast.error(nameValidation.message);
+      return;
+    }
+    if (!roleValidation.valid) {
+      toast.error(roleValidation.message);
+      return;
+    }
+
+    if (mode === 'update') {
+      updateUser({ employee: currentEmployee });
+    } else {
+      createUser({ employee: currentEmployee });
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!currentEmployee) return
+    setCurrentEmployee({ ...currentEmployee, [e.target.name]: e.target.value })
   }
 
   return (
@@ -118,58 +192,73 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredEmployees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell className="font-medium">{employee.name}</TableCell>
-                <TableCell>{employee.email}</TableCell>
-                <TableCell>{employee.phone}</TableCell>
-                <TableCell>{employee.position}</TableCell>
-                <TableCell>
-                  <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
-                    {employee.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEditEmployee(employee)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteEmployee(employee.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
+
+      {isLoading ? (
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-10 bg-white w-full" />
+          <Skeleton className="h-10 bg-white w-full" />
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-center">Role</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredEmployees.map((employee: Employee) => (
+                <TableRow key={employee._id}>
+                  <TableCell className="font-medium">{employee.name}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell className="text-center"><Badge variant="default">{employee.role.toUpperCase()}</Badge></TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      className="cursor-pointer"
+                      variant="ghost"
+                      disabled={deleteUserPending}
+                      size="icon"
+                      onClick={() => handleEditEmployee(employee)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      className="cursor-pointer"
+                      variant="ghost"
+                      disabled={deleteUserPending}
+                      size="icon"
+                      onClick={() => handleDeleteEmployee(employee)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )
+      }
+
+
+      <ConfirmDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onDelete={() => deleteUser(currentEmployee ? currentEmployee._id : '')}
+        isLoading={deleteUserPending}
+        description="Are you sure you want to delete this employee? This action cannot be undone."
+        itemToDelete={currentEmployee?.name}
+      />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{currentEmployee?.id ? 'Edit' : 'Add'} Employee</DialogTitle>
+            <DialogTitle>{mode === 'update' ? 'Edit' : 'Add'} Employee</DialogTitle>
             <DialogDescription>
-              {currentEmployee?.id ? 'Update' : 'Add new'} employee details
+              {mode === 'update' ? 'Update' : 'Add new'} employee details
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -179,8 +268,10 @@ export default function EmployeesPage() {
               </Label>
               <Input
                 id="name"
+                name="name"
+                disabled={updateUserPending || createUserPending}
                 value={currentEmployee?.name || ''}
-                onChange={(e) => setCurrentEmployee({...currentEmployee, name: e.target.value})}
+                onChange={handleInputChange}
                 className="col-span-3"
               />
             </div>
@@ -191,62 +282,62 @@ export default function EmployeesPage() {
               <Input
                 id="email"
                 type="email"
+                name="email"
+                disabled={updateUserPending || createUserPending}
                 value={currentEmployee?.email || ''}
-                onChange={(e) => setCurrentEmployee({...currentEmployee, email: e.target.value})}
+                onChange={handleInputChange}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
-                Phone
+              <Label htmlFor="password" className="text-right">
+                Password
               </Label>
-              <Input
-                id="phone"
-                value={currentEmployee?.phone || ''}
-                onChange={(e) => setCurrentEmployee({...currentEmployee, phone: e.target.value})}
-                className="col-span-3"
-              />
+              <div className="col-span-3">
+                <Password
+                  id="password"
+                  name="password"
+                  disabled={updateUserPending || createUserPending}
+                  value={currentEmployee?.password || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="position" className="text-right">
-                Position
+              <Label htmlFor="role" className="text-right">
+                Role
               </Label>
-              <Input
-                id="position"
-                value={currentEmployee?.position || ''}
-                onChange={(e) => setCurrentEmployee({...currentEmployee, position: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              <Select
-                value={currentEmployee?.status || 'active'}
-                onValueChange={(value: 'active' | 'inactive') => 
-                  setCurrentEmployee({...currentEmployee, status: value})}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="col-span-3">
+                <Select
+                  value={currentEmployee?.role || Role.EMPLOYEE}
+                  name="role"
+                  disabled={updateUserPending || createUserPending}
+                  onValueChange={(value: Role) => {
+                    if (!currentEmployee) return
+                    setCurrentEmployee({ ...currentEmployee, role: value })
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={Role.ADMIN}>Admin</SelectItem>
+                    <SelectItem value={Role.EMPLOYEE}>Employee</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button disabled={updateUserPending || createUserPending} variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" onClick={handleSaveEmployee}>
+            <Button disabled={updateUserPending || createUserPending} type="submit" onClick={handleSaveEmployee}>
               Save changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }

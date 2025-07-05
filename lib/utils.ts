@@ -15,9 +15,11 @@ const api = axios.create({
 
 const getErrorMessage = (error: AxiosError) => {
 
-  if (error.response?.data) {
-    const errorMessage = error.response.data as { message: string };
-    return errorMessage.message;
+  if (error.response && error.response.data && typeof error.response.data === "object") {
+    const data = error.response.data as { message: string };
+    if (data.message) {
+      return data.message;
+    }
   }
 
   if (!error.response) {

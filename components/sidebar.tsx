@@ -23,17 +23,20 @@ export function Sidebar() {
 
   }, [isSignedIn])
 
+  const handleLogout = () => {
+    logout()
+    setIsMobileMenuOpen(false)
+  }
+
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Employees', href: '/dashboard/employees', icon: Users },
     { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardList },
     { name: 'Attendance', href: '/dashboard/attendance', icon: Clock },
+    { name: 'Logout', href: '#', icon: LogOut, onClick: handleLogout },
   ]
 
-  const handleLogout = () => {
-    logout()
-    setIsMobileMenuOpen(false)
-  }
+
 
   const SidebarContent = () => (
     <div className="flex fixed h-screen w-64 flex-col">
@@ -56,7 +59,12 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  if (item.onClick) {
+                    item.onClick()
+                  }
+                }}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${isActive
                   ? 'bg-gradient-to-r from-blue-600/10 to-purple-600/10 text-blue-600 border-r-2 border-blue-600'
                   : 'text-muted-foreground'
@@ -68,18 +76,6 @@ export function Sidebar() {
             )
           })}
         </nav>
-      </div>
-
-      {/* Footer */}
-      <div className="p-4 border-t">
-        <Button
-          variant="outline"
-          className="w-full gap-2 h-10 bg-red-50 hover:bg-red-100 text-red-600 border-red-200 hover:border-red-300"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4" />
-          Logout
-        </Button>
       </div>
     </div>
   )

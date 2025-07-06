@@ -13,9 +13,7 @@ class Validation {
     }
 
     password(password: string) {
-        // Password must be at least 8 characters long and contain at least one letter and one number
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        return { valid: passwordRegex.test(password), message: "Password must be at least 8 characters long and contain at least one letter and one number no special characters" };
+        return { valid: password.length >= 8, message: "Password must be at least 8 characters long" };
     }
 
     name(name: string) {

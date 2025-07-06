@@ -1,5 +1,5 @@
 export default function Spinner({ size = 20 }: { size?: number }) {
     return (
-        <div className={`h-[${size}px] w-[${size}px] animate-spin rounded-full border-2 border-t-transparent border-gray-500`} />
+        <div className={`animate-spin rounded-full h-[${size}px] w-[${size}px] border-b-2 border-gray-900`} />
     )
 }

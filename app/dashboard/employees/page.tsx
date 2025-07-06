@@ -121,12 +121,16 @@ export default function EmployeesPage() {
       toast.error(emailValidation.message);
       return;
     }
-    if (mode === 'create' && !passwordValidation.valid) {
-      toast.error(passwordValidation.message);
-      return;
-    } else if (mode === 'update' && currentEmployee.password && !passwordValidation.valid) {
-      toast.error(passwordValidation.message);
-      return;
+
+    // As password is not required for employees
+    if (currentEmployee.role !== Role.EMPLOYEE) {
+      if (mode === 'create' && !passwordValidation.valid) {
+        toast.error(passwordValidation.message);
+        return;
+      } else if (mode === 'update' && currentEmployee.password && !passwordValidation.valid) {
+        toast.error(passwordValidation.message);
+        return;
+      }
     }
 
     if (!nameValidation.valid) {
@@ -347,7 +351,7 @@ export default function EmployeesPage() {
                 className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+            {currentEmployee?.role !== Role.EMPLOYEE && <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="password" className="text-right">
                 Password
               </Label>
@@ -360,7 +364,7 @@ export default function EmployeesPage() {
                   onChange={handleInputChange}
                 />
               </div>
-            </div>
+            </div>}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
                 Role

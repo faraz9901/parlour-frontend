@@ -11,7 +11,6 @@ import { api, getErrorMessage } from "@/lib/utils";
 import { AxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
 import useCurrentUser from "@/lib/store/user.store";
-import { Role } from "@/lib/enums";
 import { useRouter } from "next/navigation";
 // import Password from "@/components/ui/password";
 import { Sparkles, Lock, Mail, Eye, EyeOff } from "lucide-react";
@@ -26,7 +25,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      const path = user.role === Role.EMPLOYEE ? "/attendance" : "/dashboard";
+      const path = "/dashboard";
       router.replace(path);
     }
   }, [user])

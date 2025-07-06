@@ -7,7 +7,6 @@ import { Button } from "./ui/button"
 import useCurrentUser from "@/lib/store/user.store"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Role } from "@/lib/enums"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 
 export function Sidebar() {
@@ -15,15 +14,14 @@ export function Sidebar() {
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const { logout, user, isLoading } = useCurrentUser()
+  const { logout, isSignedIn } = useCurrentUser()
 
   useEffect(() => {
-    if (!user && !isLoading) {
+    if (!isSignedIn) {
       router.replace('/')
-    } else if (user && user.role === Role.EMPLOYEE) {
-      router.replace('/attendance')
     }
-  }, [user, isLoading])
+
+  }, [isSignedIn])
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -38,7 +36,7 @@ export function Sidebar() {
   }
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col">
+    <div className="flex fixed h-screen w-64 flex-col">
       {/* Header */}
       <div className="flex h-16 items-center border-b px-4 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="flex items-center space-x-3">
@@ -97,7 +95,7 @@ export function Sidebar() {
       <div className="lg:hidden">
         <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 lg:hidden">
+            <Button variant="outline" size="icon" className="fixed top-2 left-2 z-50 lg:hidden">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>

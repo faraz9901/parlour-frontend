@@ -84,7 +84,7 @@ export default function EmployeesPage() {
     }
   })
 
-  const filteredEmployees = employees
+  const filteredEmployees = employees?.filter((employee: Employee) => employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || employee.email.toLowerCase().includes(searchTerm.toLowerCase()))
 
   const handleDeleteEmployee = (employee: Employee) => {
     setCurrentEmployee(employee)
@@ -170,7 +170,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Stats Card */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
@@ -252,12 +252,12 @@ export default function EmployeesPage() {
         </Card>
       ) : (
         <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60 overflow-hidden">
-          <div className="rounded-md border-0">
+          <div className="rounded-md border-0 w-[90vw] md:w-full  overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="text-center font-semibold">Name</TableHead>
+                  <TableHead className="text-center font-semibold">Email</TableHead>
                   <TableHead className="text-center font-semibold">Role</TableHead>
                   <TableHead className="text-center font-semibold">Actions</TableHead>
                 </TableRow>
@@ -265,8 +265,8 @@ export default function EmployeesPage() {
               <TableBody>
                 {filteredEmployees.map((employee: Employee) => (
                   <TableRow key={employee._id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{employee.email}</TableCell>
+                    <TableCell className="font-medium text-center">{employee.name}</TableCell>
+                    <TableCell className="text-center text-muted-foreground">{employee.email}</TableCell>
                     <TableCell className="text-center">
                       <Badge
                         variant={employee.role === Role.ADMIN ? "default" : "secondary"}
@@ -324,7 +324,7 @@ export default function EmployeesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
@@ -334,7 +334,7 @@ export default function EmployeesPage() {
                 disabled={updateUserPending || createUserPending}
                 value={currentEmployee?.name || ''}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 sm:w-full"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -348,7 +348,7 @@ export default function EmployeesPage() {
                 disabled={updateUserPending || createUserPending}
                 value={currentEmployee?.email || ''}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className="col-span-3 sm:w-full"
               />
             </div>
             {currentEmployee?.role !== Role.EMPLOYEE && <div className="grid grid-cols-4 items-center gap-4">

@@ -26,6 +26,7 @@ import { toast } from "sonner"
 import attendanceService from "@/lib/services/attendance.service"
 import { AttendanceLogWithUser } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
+import useAttendanceListner from "@/hooks/useAttendanceListner"
 
 export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -33,6 +34,8 @@ export default function AttendancePage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [selectedLog, setSelectedLog] = useState<AttendanceLogWithUser | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
+  useAttendanceListner()
 
   // Fetch attendance records with React Query
   const { data: attendanceLogs = [], isLoading, isError, error } = useQuery<AttendanceLogWithUser[]>({

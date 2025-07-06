@@ -30,7 +30,6 @@ export default function RootLayout({
             <Toaster
               position="top-center"
               richColors
-              closeButton
               duration={4000}
             />
           </div>

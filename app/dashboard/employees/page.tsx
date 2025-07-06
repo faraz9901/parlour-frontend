@@ -164,7 +164,6 @@ export default function EmployeesPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
-            <p className="text-muted-foreground">Manage your team members and their roles</p>
           </div>
         </div>
       </div>

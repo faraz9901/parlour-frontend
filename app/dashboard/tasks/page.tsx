@@ -6,7 +6,6 @@ import { Plus, Search, Pencil, Trash2, LoaderCircle, ClipboardList, CheckCircle,
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import {
     Dialog,
     DialogContent,
@@ -26,6 +25,7 @@ import userService from "@/lib/services/user.service"
 import { Employee, Task, TaskWithUser } from "@/lib/types"
 import { validation } from "@/lib/validations"
 import { Card, CardContent } from "@/components/ui/card"
+import TaskBadge from "@/components/TaskBadge"
 
 // API Service
 const API_BASE_URL = '/tasks';
@@ -208,26 +208,6 @@ export default function TasksPage() {
         });
     };
 
-    const getStatusBadge = (status: TaskStatus) => {
-        switch (status) {
-            case TaskStatus.COMPLETED:
-                return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" />
-                    Completed
-                </Badge>
-            case TaskStatus.IN_PROGRESS:
-                return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    In Progress
-                </Badge>
-            default:
-                return <Badge variant="outline" className="flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    Pending
-                </Badge>
-        }
-    }
-
     const getStatusCount = (status: TaskStatus) => {
         return tasks.filter(task => task.status === status).length;
     }
@@ -242,7 +222,6 @@ export default function TasksPage() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-                        <p className="text-muted-foreground">Manage and track team assignments</p>
                     </div>
                 </div>
             </div>
@@ -319,14 +298,14 @@ export default function TasksPage() {
 
             {/* Table */}
             <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60 overflow-hidden">
-                <div className="rounded-md border-0">
+                <div className="rounded-md border-0 w-[90vw] md:w-full  overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-muted/50">
-                                <TableHead className="font-semibold">Title</TableHead>
-                                <TableHead className="font-semibold">Assigned To</TableHead>
-                                <TableHead className="font-semibold">Status</TableHead>
-                                <TableHead className="text-right font-semibold">Actions</TableHead>
+                                <TableHead className="text-center font-semibold">Title</TableHead>
+                                <TableHead className="text-center font-semibold">Assigned To</TableHead>
+                                <TableHead className="text-center font-semibold">Status</TableHead>
+                                <TableHead className="text-center font-semibold">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -353,10 +332,12 @@ export default function TasksPage() {
                             ) : (
                                 filteredTasks.map((task) => (
                                     <TableRow key={task._id} className="hover:bg-muted/30 transition-colors">
-                                        <TableCell className="font-medium">{task.title}</TableCell>
-                                        <TableCell className="text-muted-foreground">{task.assignedTo.name}</TableCell>
-                                        <TableCell>{getStatusBadge(task.status)}</TableCell>
-                                        <TableCell className="text-right space-x-1">
+                                        <TableCell className="text-center font-medium">{task.title}</TableCell>
+                                        <TableCell className="text-center text-muted-foreground">{task.assignedTo.name}</TableCell>
+                                        <TableCell className=" flex justify-center">
+                                            <TaskBadge status={task.status} />
+                                        </TableCell>
+                                        <TableCell className="text-center space-x-1">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

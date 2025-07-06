@@ -20,7 +20,7 @@ class Validation {
 
     name(name: string) {
         // Name must be at least 3 characters long
-        const nameRegex = /^[a-zA-Z ]+$/;
+        const nameRegex = /^[a-zA-Z0-9 ]+$/;
         return { valid: nameRegex.test(name), message: "Invalid name" };
     }
 

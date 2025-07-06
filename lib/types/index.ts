@@ -34,3 +34,22 @@ export interface User {
     email: string
     role: Role
 }
+
+export interface AttendanceLog {
+    _id: string
+    employee: string | User
+    checkIn: string
+    checkOut: string
+    createdAt: string
+    updatedAt: string
+}
+
+export interface AttendanceLogWithUser extends AttendanceLog {
+    employee: User
+}
+
+export interface AttendanceLogCreate {
+    employee: string
+    checkIn: string
+    checkOut: string
+}

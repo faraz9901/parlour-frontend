@@ -4,9 +4,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Users, ClipboardList, Clock, LogOut } from "lucide-react"
 import { Button } from "./ui/button"
+import useCurrentUser from "@/lib/store/user.store"
 
 export function Sidebar() {
   const pathname = usePathname()
+
+  const { logout } = useCurrentUser()
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -29,9 +32,8 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
-                    isActive ? 'bg-gray-100 text-primary' : 'text-gray-500 hover:bg-gray-100'
-                  }`}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${isActive ? 'bg-gray-100 text-primary' : 'text-gray-500 hover:bg-gray-100'
+                    }`}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.name}
@@ -41,7 +43,7 @@ export function Sidebar() {
           </nav>
         </div>
         <div className="p-4">
-          <Button variant="outline" className="w-full gap-2">
+          <Button variant="outline" className="w-full gap-2" onClick={logout}>
             <LogOut className="h-4 w-4" />
             Logout
           </Button>

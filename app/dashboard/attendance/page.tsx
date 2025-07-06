@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Calendar as CalendarIcon, Download } from "lucide-react"
-import { format, subDays, isToday, isYesterday } from "date-fns"
+import { Calendar as CalendarIcon, Download, Trash2 } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -20,160 +21,102 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { toast } from "sonner"
+import attendanceService from "@/lib/services/attendance.service"
+import { AttendanceLogWithUser } from "@/lib/types"
 
-type AttendanceLog = {
-  id: string
-  employeeName: string
-  date: string
-  checkIn: string
-  checkOut: string
-  status: 'present' | 'absent' | 'late' | 'half_day' | 'on_leave'
-}
 
 export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [date, setDate] = useState<Date | undefined>(new Date())
+  const [date, setDate] = useState<Date>(new Date())
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [selectedLog, setSelectedLog] = useState<AttendanceLogWithUser | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  const attendanceLogs: AttendanceLog[] = [
-    {
-      id: "1",
-      employeeName: "John Doe",
-      date: format(new Date(), 'yyyy-MM-dd'),
-      checkIn: "09:00 AM",
-      checkOut: "06:00 PM",
-      status: "present"
-    },
-    {
-      id: "2",
-      employeeName: "Jane Smith",
-      date: format(new Date(), 'yyyy-MM-dd'),
-      checkIn: "09:30 AM",
-      checkOut: "06:30 PM",
-      status: "late"
-    },
-    {
-      id: "3",
-      employeeName: "Mike Johnson",
-      date: format(subDays(new Date(), 1), 'yyyy-MM-dd'),
-      checkIn: "09:15 AM",
-      checkOut: "05:45 PM",
-      status: "present"
-    },
-    {
-      id: "4",
-      employeeName: "Sarah Williams",
-      date: format(new Date(), 'yyyy-MM-dd'),
-      checkIn: "-",
-      checkOut: "-",
-      status: "absent"
-    },
-    {
-      id: "5",
-      employeeName: "David Brown",
-      date: format(new Date(), 'yyyy-MM-dd'),
-      checkIn: "09:00 AM",
-      checkOut: "01:00 PM",
-      status: "half_day"
-    }
-  ]
-
-  const filteredLogs = attendanceLogs.filter(log => {
-    const matchesSearch = log.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesDate = date ? log.date === format(date, 'yyyy-MM-dd') : true
-    const matchesStatus = statusFilter === "all" || log.status === statusFilter
-    
-    return matchesSearch && matchesDate && matchesStatus
+  // Fetch attendance records with React Query
+  const { data: attendanceLogs = [], isLoading, isError, error } = useQuery<AttendanceLogWithUser[]>({
+    queryKey: ['attendance'],
+    queryFn: attendanceService.getAll,
   })
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'present':
-        return <Badge className="bg-green-500">Present</Badge>
-      case 'absent':
-        return <Badge variant="destructive">Absent</Badge>
-      case 'late':
-        return <Badge className="bg-yellow-500">Late</Badge>
-      case 'half_day':
-        return <Badge className="bg-blue-500">Half Day</Badge>
-      case 'on_leave':
-        return <Badge className="bg-purple-500">On Leave</Badge>
-      default:
-        return <Badge variant="outline">Unknown</Badge>
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => attendanceService.delete(id),
+    onSuccess: () => {
+      toast.success("Attendance record deleted successfully")
+      setDeleteDialogOpen(false)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete attendance record')
+      setDeleteDialogOpen(false)
+    },
+  })
+
+  const handleDelete = (log: AttendanceLogWithUser) => {
+    setSelectedLog(log)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (selectedLog) {
+      deleteMutation.mutate(selectedLog._id)
     }
   }
 
-  const getFormattedDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    if (isToday(date)) return 'Today'
-    if (isYesterday(date)) return 'Yesterday'
-    return format(date, 'MMM dd, yyyy')
+  const getStatusBadge = (log: AttendanceLogWithUser) => {
+
+    if (!log.checkIn && !log.checkOut) {
+      return <Badge variant="destructive">Absent</Badge>
+    }
+    if (log.checkIn && log.checkOut) {
+      return <Badge className="bg-green-500">Present</Badge>
+    }
   }
 
-  const handleExport = () => {
-    // In a real app, this would generate and download a CSV/Excel file
-    alert('Exporting attendance data...')
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Attendance Logs</h1>
-        <Button variant="outline" onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
-      </div>
-
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between space-x-2">
+        <div className="flex-1 max-w-[400px]">
           <Input
-            type="search"
-            placeholder="Search employees..."
-            className="pl-8"
+            placeholder="Search attendance logs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
           />
         </div>
-        
-        <div className="flex space-x-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-[240px] justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="present">Present</SelectItem>
-              <SelectItem value="absent">Absent</SelectItem>
-              <SelectItem value="late">Late</SelectItem>
-              <SelectItem value="half_day">Half Day</SelectItem>
-              <SelectItem value="on_leave">On Leave</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, 'PPP') : 'Pick a date'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+              required
+            />
+          </PopoverContent>
+        </Popover>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="present">Present</SelectItem>
+            <SelectItem value="absent">Absent</SelectItem>
+            <SelectItem value="late">Late</SelectItem>
+            <SelectItem value="half_day">Half Day</SelectItem>
+            <SelectItem value="on_leave">On Leave</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -183,29 +126,93 @@ export default function AttendancePage() {
               <TableHead>Check In</TableHead>
               <TableHead>Check Out</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredLogs.length > 0 ? (
-              filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.employeeName}</TableCell>
-                  <TableCell>{getFormattedDate(log.date)}</TableCell>
-                  <TableCell>{log.checkIn}</TableCell>
-                  <TableCell>{log.checkOut}</TableCell>
-                  <TableCell>{getStatusBadge(log.status)}</TableCell>
-                </TableRow>
-              ))
-            ) : (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  No attendance records found.
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center"
+                >
+                  Loading...
                 </TableCell>
               </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center"
+                >
+                  Error: {error?.message || 'Failed to fetch attendance records'}
+                </TableCell>
+              </TableRow>
+            ) : attendanceLogs.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center"
+                >
+                  No attendance logs found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              attendanceLogs.map((log) => (
+                <TableRow key={log._id}>
+                  <TableCell className="font-medium">{log.employee.name}</TableCell>
+                  <TableCell>{log.checkIn}</TableCell>
+                  <TableCell>{log.checkOut}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(log)}
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(log)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        // Download attendance record
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
       </div>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Attendance Record</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this attendance record for {selectedLog?.employee.name}?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

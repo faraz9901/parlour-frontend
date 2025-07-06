@@ -13,16 +13,16 @@ class AttendanceService {
         return response.data.content
     }
 
-    async checkIn(employeeId: string) {
-        const response = await api.post(`${API_BASE_URL}/check-in`, { employeeId })
+    async checkIn() {
+        const response = await api.post(`${API_BASE_URL}/check-in`)
         if (!response.data.success) {
             throw new Error('Failed to check in')
         }
         return response.data.content
     }
 
-    async checkOut(employeeId: string) {
-        const response = await api.post(`${API_BASE_URL}/check-out`, { employeeId })
+    async checkOut() {
+        const response = await api.post(`${API_BASE_URL}/check-out`)
         if (!response.data.success) {
             throw new Error('Failed to check out')
         }
@@ -35,6 +35,14 @@ class AttendanceService {
             throw new Error('Failed to delete attendance record')
         }
         return id
+    }
+
+    async getEmployeeLogs() {
+        const response = await api.get(`${API_BASE_URL}/employee`)
+        if (!response.data.success) {
+            throw new Error('Failed to fetch attendance')
+        }
+        return response.data.content
     }
 }
 

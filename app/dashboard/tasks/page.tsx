@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, Search, Pencil, Trash2, LoaderCircle } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, LoaderCircle, ClipboardList, CheckCircle, Clock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,6 +25,7 @@ import { TaskStatus } from "@/lib/enums"
 import userService from "@/lib/services/user.service"
 import { Employee, Task, TaskWithUser } from "@/lib/types"
 import { validation } from "@/lib/validations"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // API Service
 const API_BASE_URL = '/tasks';
@@ -68,7 +69,6 @@ const deleteTask = async (id: string) => {
 
     return id;
 };
-
 
 export default function TasksPage() {
     const queryClient = useQueryClient()
@@ -166,7 +166,6 @@ export default function TasksPage() {
     };
 
     const handleSaveTask = () => {
-
         const titleValidation = validation.empty(currentTask.title, "Title");
         const descriptionValidation = validation.empty(currentTask.description, "Description");
         const assignedToValidation = validation.empty(currentTask.assignedTo, "Assigned To");
@@ -188,7 +187,6 @@ export default function TasksPage() {
             toast.error(statusValidation.message);
             return;
         }
-
 
         const taskData = {
             ...currentTask,
@@ -213,102 +211,180 @@ export default function TasksPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case TaskStatus.COMPLETED:
-                return <Badge className="bg-green-500">Completed</Badge>
+                return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Completed
+                </Badge>
             case TaskStatus.IN_PROGRESS:
-                return <Badge className="bg-blue-500">In Progress</Badge>
+                return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    In Progress
+                </Badge>
             default:
-                return <Badge variant="outline">Pending</Badge>
+                return <Badge variant="outline" className="flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Pending
+                </Badge>
         }
+    }
+
+    const getStatusCount = (status: TaskStatus) => {
+        return tasks.filter(task => task.status === status).length;
     }
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-                <Button onClick={handleAddTask}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Task
-                </Button>
-            </div>
-
-            <div className="flex items-center space-x-2">
-                <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search tasks..."
-                        className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+            {/* Header */}
+            <div className="space-y-2">
+                <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                        <ClipboardList className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+                        <p className="text-muted-foreground">Manage and track team assignments</p>
+                    </div>
                 </div>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Assigned To</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8">
-                                    <div className="flex justify-center">
-                                        <LoaderCircle className="h-8 w-8 animate-spin" />
-                                    </div>
-                                </TableCell>
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+                    <CardContent className="p-6">
+                        <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                                <p className="text-2xl font-bold">{getStatusCount(TaskStatus.PENDING)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+                    <CardContent className="p-6">
+                        <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                <Clock className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                                <p className="text-2xl font-bold">{getStatusCount(TaskStatus.IN_PROGRESS)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+                    <CardContent className="p-6">
+                        <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                                <p className="text-2xl font-bold">{getStatusCount(TaskStatus.COMPLETED)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Actions Bar */}
+            <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+                <CardContent className="p-6">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                        <div className="relative flex-1 max-w-sm">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search tasks..."
+                                className="pl-10 bg-background/50 border-muted-foreground/20"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <Button
+                            onClick={handleAddTask}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+                        >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Task
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Table */}
+            <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60 overflow-hidden">
+                <div className="rounded-md border-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="bg-muted/50">
+                                <TableHead className="font-semibold">Title</TableHead>
+                                <TableHead className="font-semibold">Assigned To</TableHead>
+                                <TableHead className="font-semibold">Status</TableHead>
+                                <TableHead className="text-right font-semibold">Actions</TableHead>
                             </TableRow>
-                        ) : isError ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-destructive">
-                                    Error loading tasks: {error?.message}
-                                </TableCell>
-                            </TableRow>
-                        ) : filteredTasks.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    No tasks found
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredTasks.map((task) => (
-                                <TableRow key={task._id}>
-                                    <TableCell className="font-medium">{task.title}</TableCell>
-                                    <TableCell>{task.assignedTo.name}</TableCell>
-                                    <TableCell>{getStatusBadge(task.status)}</TableCell>
-                                    <TableCell className="text-right space-x-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleEditTask(task)}
-                                            disabled={deleteMutation.isPending}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleDeleteClick(task._id)}
-                                            disabled={deleteMutation.isPending}
-                                        >
-                                            {deleteMutation.variables === task._id && deleteMutation.isPending ? (
-                                                <LoaderCircle className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            )}
-                                        </Button>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8">
+                                        <div className="flex justify-center">
+                                            <LoaderCircle className="h-8 w-8 animate-spin" />
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ) : isError ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-destructive">
+                                        Error loading tasks: {error?.message}
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredTasks.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        No tasks found
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredTasks.map((task) => (
+                                    <TableRow key={task._id} className="hover:bg-muted/30 transition-colors">
+                                        <TableCell className="font-medium">{task.title}</TableCell>
+                                        <TableCell className="text-muted-foreground">{task.assignedTo.name}</TableCell>
+                                        <TableCell>{getStatusBadge(task.status)}</TableCell>
+                                        <TableCell className="text-right space-x-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEditTask(task)}
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDeleteClick(task._id)}
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                {deleteMutation.variables === task._id && deleteMutation.isPending ? (
+                                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                )}
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </Card>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -347,7 +423,10 @@ export default function TasksPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-[525px]">
                     <DialogHeader>
-                        <DialogTitle>{mode === 'edit' ? 'Edit' : 'Add'} Task</DialogTitle>
+                        <DialogTitle className="flex items-center space-x-2">
+                            <ClipboardList className="h-5 w-5" />
+                            <span>{mode === 'edit' ? 'Edit' : 'Add'} Task</span>
+                        </DialogTitle>
                         <DialogDescription>
                             {mode === 'edit' ? 'Update' : 'Create a new'} task and assign it to a team member.
                         </DialogDescription>
@@ -404,7 +483,6 @@ export default function TasksPage() {
                                 Status
                             </Label>
                             <div className="col-span-3">
-
                                 <Select
                                     value={currentTask?.status || TaskStatus.PENDING}
                                     onValueChange={(value: TaskStatus) =>
@@ -435,6 +513,7 @@ export default function TasksPage() {
                             type="button"
                             onClick={handleSaveTask}
                             disabled={createMutation.isPending || updateMutation.isPending}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                         >
                             {(createMutation.isPending || updateMutation.isPending) ? (
                                 <>

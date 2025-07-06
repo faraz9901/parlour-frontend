@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { validation } from "@/lib/validations";
 import { toast } from "sonner";
 import { api, getErrorMessage } from "@/lib/utils";
@@ -13,14 +13,15 @@ import { useMutation } from "@tanstack/react-query";
 import useCurrentUser from "@/lib/store/user.store";
 import { Role } from "@/lib/enums";
 import { useRouter } from "next/navigation";
-import Password from "@/components/ui/password";
-
+// import Password from "@/components/ui/password";
+import { Sparkles, Lock, Mail, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { checkUserSession, isLoading, user } = useCurrentUser();
 
   useEffect(() => {
@@ -37,9 +38,9 @@ export default function LoginPage() {
     onSuccess: async () => {
       const validUser = await checkUserSession();
       if (validUser) {
-        toast.success("User logged in successfully")
+        toast.success("Welcome back! You've been logged in successfully")
       } else {
-        toast.error("There was an error logging in ! Please try again")
+        toast.error("There was an error logging in! Please try again")
       }
     },
     onError: (error) => {
@@ -64,25 +65,99 @@ export default function LoginPage() {
     mutate({ email, password });
   }
 
-
   return (
-    <div className="flex items-start mt-20  justify-center h-[80vh]">
-      <div className=" w-full max-w-md bg-white dark:bg-gray-900 shadow-xl rounded-xl p-8 flex flex-col gap-6">
-        <div className="text-center mb-2">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-1">Welcome Back</h1>
-          <p className="text-gray-500 dark:text-gray-300 text-sm">Sign in to your account</p>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Parlour Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">Modern beauty salon management</p>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <Label htmlFor="email" className="text-gray-700 dark:text-gray-200">Email</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} id="email" type="email" placeholder="you@example.com" className="mt-1" required autoComplete="email" />
-          </div>
-          <div>
-            <Label htmlFor="password" className="text-gray-700 dark:text-gray-200">Password</Label>
-            <Password value={password} onChange={(e) => setPassword(e.target.value)} id="password" />
-          </div>
-          <Button type="submit" className="w-full mt-2" disabled={isPending || isLoading}>Login</Button>
-        </form>
+
+        {/* Login Card */}
+        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-2xl font-semibold text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center">
+              Sign in to your account to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="pl-10 h-11 bg-background/50 border-muted-foreground/20 focus:border-primary transition-colors"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10 h-11 bg-background/50 border-muted-foreground/20 focus:border-primary transition-colors"
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                disabled={isPending || isLoading}
+              >
+                {isPending || isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  "Sign in"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-muted-foreground">
+            Secure login powered by modern authentication
+          </p>
+        </div>
       </div>
     </div>
   );

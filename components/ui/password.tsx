@@ -16,7 +16,7 @@ function Password({ ...props }: InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div className="flex items-center gap-2 relative w-full">
             <Input type={showPassword ? "text" : "password"} {...props} />
-            <Button type="button" onClick={togglePassword} className="absolute right-0">
+            <Button type="button" onClick={togglePassword} className="absolute right-0 bg-gradient-to-r from-blue-600 to-purple-600">
                 {showPassword ? <Eye /> : <EyeOff />}
             </Button>
         </div>

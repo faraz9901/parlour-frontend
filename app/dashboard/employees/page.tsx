@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, Pencil, Trash2 } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Users, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog"
 import userService from "@/lib/services/user.service"
 import { Employee } from "@/lib/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -43,8 +44,6 @@ export default function EmployeesPage() {
   const [mode, setMode] = useState<'create' | 'update'>('create')
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-
-
 
   const { mutate: createUser, isPending: createUserPending } = useMutation({
     mutationFn: userService.create,
@@ -84,7 +83,6 @@ export default function EmployeesPage() {
       toast.error(getErrorMessage(error))
     }
   })
-
 
   const filteredEmployees = employees
 
@@ -154,78 +152,152 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
-        <Button onClick={handleAddEmployee}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search employees..."
-            className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+            <Users className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
+            <p className="text-muted-foreground">Manage your team members and their roles</p>
+          </div>
         </div>
       </div>
 
+      {/* Stats Card */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Users className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                <p className="text-2xl font-bold">{employees?.length || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Users className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active</p>
+                <p className="text-2xl font-bold">{employees?.filter(e => e.role === Role.EMPLOYEE).length || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Users className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Admins</p>
+                <p className="text-2xl font-bold">{employees?.filter(e => e.role === Role.ADMIN).length || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions Bar */}
+      <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search employees..."
+                className="pl-10 bg-background/50 border-muted-foreground/20"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleAddEmployee}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Employee
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
       {isLoading ? (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 bg-white w-full" />
-          <Skeleton className="h-10 bg-white w-full" />
-        </div>
+        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-center">Role</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.map((employee: Employee) => (
-                <TableRow key={employee._id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell className="text-center"><Badge variant="default">{employee.role.toUpperCase()}</Badge></TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      className="cursor-pointer"
-                      variant="ghost"
-                      disabled={deleteUserPending}
-                      size="icon"
-                      onClick={() => handleEditEmployee(employee)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      className="cursor-pointer"
-                      variant="ghost"
-                      disabled={deleteUserPending}
-                      size="icon"
-                      onClick={() => handleDeleteEmployee(employee)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
+        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60 overflow-hidden">
+          <div className="rounded-md border-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="text-center font-semibold">Role</TableHead>
+                  <TableHead className="text-center font-semibold">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )
-      }
-
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((employee: Employee) => (
+                  <TableRow key={employee._id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="font-medium">{employee.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{employee.email}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant={employee.role === Role.ADMIN ? "default" : "secondary"}
+                        className={employee.role === Role.ADMIN ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" : ""}
+                      >
+                        {employee.role.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center space-x-1">
+                      <Button
+                        className="cursor-pointer"
+                        variant="ghost"
+                        disabled={deleteUserPending}
+                        size="icon"
+                        onClick={() => handleEditEmployee(employee)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        className="cursor-pointer"
+                        variant="ghost"
+                        disabled={deleteUserPending}
+                        size="icon"
+                        onClick={() => handleDeleteEmployee(employee)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
 
       <ConfirmDeleteDialog
         isOpen={isDeleteDialogOpen}
@@ -237,11 +309,14 @@ export default function EmployeesPage() {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{mode === 'update' ? 'Edit' : 'Add'} Employee</DialogTitle>
+            <DialogTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>{mode === 'update' ? 'Edit' : 'Add'} Employee</span>
+            </DialogTitle>
             <DialogDescription>
-              {mode === 'update' ? 'Update' : 'Add new'} employee details
+              {mode === 'update' ? 'Update' : 'Add new'} employee details to your team
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -315,12 +390,23 @@ export default function EmployeesPage() {
             <Button disabled={updateUserPending || createUserPending} variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button disabled={updateUserPending || createUserPending} type="submit" onClick={handleSaveEmployee}>
-              Save changes
+            <Button
+              disabled={updateUserPending || createUserPending}
+              onClick={handleSaveEmployee}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              {updateUserPending || createUserPending ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                "Save changes"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div >
+    </div>
   )
 }

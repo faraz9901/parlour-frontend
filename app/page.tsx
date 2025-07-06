@@ -66,31 +66,30 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-2 md:p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
+        <div className="text-center mb-4 md:mb-8">
+          <div className="inline-flex items-center justify-center md:w-16 md:h-16 w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
+            <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Parlour Dashboard
           </h1>
-          <p className="text-muted-foreground mt-2">Modern beauty salon management</p>
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-semibold text-center">Welcome back</CardTitle>
+        <Card className="shadow-2xl  border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
+          <CardHeader className="space-y-1  md:pb-4">
+            <CardTitle className="md:text-2xl text-xl font-semibold text-center">Welcome back</CardTitle>
             <CardDescription className="text-center">
               Sign in to your account to continue
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="md:space-y-4 space-y-2">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
+                <Label htmlFor="email" className="text-sm md:text-base font-medium">
                   Email address
                 </Label>
                 <div className="relative">
@@ -139,7 +138,7 @@ export default function LoginPage() {
                 className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={isPending || isLoading}
               >
-                {isPending || isLoading ? (
+                {(isPending || isLoading) ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     <span>Signing in...</span>
@@ -151,13 +150,6 @@ export default function LoginPage() {
             </form>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground">
-            Secure login powered by modern authentication
-          </p>
-        </div>
       </div>
     </div>
   );

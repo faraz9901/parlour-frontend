@@ -19,7 +19,7 @@ import { Role } from "@/lib/enums"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/utils"
 import { AxiosError } from "axios"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
 import { validation } from "@/lib/validations"
 import Password from "@/components/ui/password"
@@ -28,11 +28,10 @@ import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog"
 import userService from "@/lib/services/user.service"
 import { Employee } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
+import { queryClient } from "@/lib/react-query"
 
 export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
-
-  const queryClient = useQueryClient()
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['users'],

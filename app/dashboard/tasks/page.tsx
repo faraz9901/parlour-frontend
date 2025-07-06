@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import { Plus, Search, Pencil, Trash2, LoaderCircle, ClipboardList, CheckCircle, Clock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,10 +27,10 @@ import { validation } from "@/lib/validations"
 import { Card, CardContent } from "@/components/ui/card"
 import TaskBadge from "@/components/TaskBadge"
 import taskService from "@/lib/services/task.service"
+import { queryClient } from "@/lib/react-query"
 
 
 export default function TasksPage() {
-    const queryClient = useQueryClient()
 
     // Fetch tasks with React Query
     const { data: tasks = [], isLoading, isError, error } = useQuery<TaskWithUser[]>({

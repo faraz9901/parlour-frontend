@@ -12,8 +12,8 @@ import { AxiosError } from 'axios'
 
 import userService from '@/lib/services/user.service'
 import AttendanceBadge from '@/components/AttendanceBadge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Users } from 'lucide-react'
+import { LoaderCircle, Users } from 'lucide-react'
+
 
 export default function AttendancePage() {
 
@@ -55,9 +55,8 @@ export default function AttendancePage() {
 
   if (isLogsLoading || isEmployeesLoading) {
     return (
-      <div className='flex flex-col gap-4 p-3'>
-        <Skeleton className="h-16 bg-blue-200" />
-        <Skeleton className="h-16 bg-blue-200" />
+      <div className="flex h-screen items-center justify-center">
+        <LoaderCircle className="h-16 w-16 animate-spin stroke-1 stroke-blue-300" />
       </div>
     )
 
@@ -70,17 +69,17 @@ export default function AttendancePage() {
         <div className="space-y-2">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
-              <Users className="h-8 w-8 text-white" />
+              <Users className="h-6 w-6  md:h-8 md:w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
                 Employee Dashboard
               </h1>
             </div>
           </div>
         </div>
 
-        <div className='grid-cols-4 grid gap-4'>
+        <div className='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid gap-4'>
           {employees?.map((employee) => {
             const employeeLog = logs?.find((log) => log.employee === employee._id)
 

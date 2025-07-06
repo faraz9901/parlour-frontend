@@ -25,7 +25,7 @@ import { TaskStatus } from "@/lib/enums"
 import userService from "@/lib/services/user.service"
 import { Employee, Task, TaskWithUser } from "@/lib/types"
 import { validation } from "@/lib/validations"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 // API Service
 const API_BASE_URL = '/tasks';

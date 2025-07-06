@@ -25,7 +25,7 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
 import attendanceService from "@/lib/services/attendance.service"
 import { AttendanceLogWithUser } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("")

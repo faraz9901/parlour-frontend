@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, Pencil, Trash2, Users, Filter } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog"
 import userService from "@/lib/services/user.service"
 import { Employee } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -189,7 +189,7 @@ export default function EmployeesPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold">{employees?.filter(e => e.role === Role.EMPLOYEE).length || 0}</p>
+                <p className="text-2xl font-bold">{employees?.filter((e: Employee) => e.role === Role.EMPLOYEE).length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -203,7 +203,7 @@ export default function EmployeesPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Admins</p>
-                <p className="text-2xl font-bold">{employees?.filter(e => e.role === Role.ADMIN).length || 0}</p>
+                <p className="text-2xl font-bold">{employees?.filter((e: Employee) => e.role === Role.ADMIN).length || 0}</p>
               </div>
             </div>
           </CardContent>

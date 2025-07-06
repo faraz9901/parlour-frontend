@@ -13,7 +13,8 @@ import { useMutation } from "@tanstack/react-query";
 import useCurrentUser from "@/lib/store/user.store";
 import { useRouter } from "next/navigation";
 // import Password from "@/components/ui/password";
-import { Sparkles, Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Lock, Mail, Eye, EyeOff, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -146,6 +147,11 @@ export default function LoginPage() {
                   "Sign in"
                 )}
               </Button>
+
+              <Link href="/attendance" className="flex items-center hover:scale-105 transition-all duration-200 justify-center text-sm mt-2">
+                <span className="font-semibold text-blue-600">Check In/Out</span>
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
             </form>
           </CardContent>
         </Card>

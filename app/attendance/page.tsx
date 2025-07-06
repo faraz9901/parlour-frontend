@@ -80,6 +80,11 @@ export default function AttendancePage() {
         </div>
 
         <div className='grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid gap-4'>
+
+          {employees?.length === 0 && (
+            <p className="text-center text-muted-foreground">No employees added yet</p>
+          )}
+
           {employees?.map((employee) => {
             const employeeLog = logs?.find((log) => log.employee === employee._id)
 

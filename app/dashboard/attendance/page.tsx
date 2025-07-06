@@ -140,7 +140,7 @@ export default function AttendancePage() {
                     <TableCell className="text-center font-medium">{log.employee.name}</TableCell>
                     <TableCell className="text-center font-medium">{format(log.createdAt, 'dd/MM/yyyy')}</TableCell>
                     <TableCell className="text-center text-muted-foreground">{format(log.checkIn, 'hh:mm a')}</TableCell>
-                    <TableCell className="text-center text-muted-foreground">{format(log.checkOut, 'hh:mm a')}</TableCell>
+                    <TableCell className="text-center text-muted-foreground">{log.checkOut ? format(log.checkOut, 'hh:mm a') : 'Not checked out'}</TableCell>
                     <TableCell className="text-center">
                       <AttendanceBadge checkIn={!!log.checkIn} checkedOut={!!log.checkOut} />
                     </TableCell>

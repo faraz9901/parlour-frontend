@@ -208,7 +208,7 @@ export default function TasksPage() {
         });
     };
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: TaskStatus) => {
         switch (status) {
             case TaskStatus.COMPLETED:
                 return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 flex items-center gap-1">

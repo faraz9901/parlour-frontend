@@ -42,11 +42,11 @@ class UserService {
         return id
     }
 
-    async getOne(id: string) {
-        const response = await api.get(`/users/get/${id}`)
+    async getEmployees() {
+        const response = await api.get(`/users/employees`)
 
         if (!response.data.success) {
-            throw new Error('Failed to fetch user')
+            throw new Error('Failed to fetch employees')
         }
 
         return response.data.content

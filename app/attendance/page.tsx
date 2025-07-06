@@ -8,16 +8,28 @@ import taskService from '@/lib/services/task.service'
 import { Task, AttendanceLog } from '@/lib/types'
 import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
-import { TaskStatus } from '@/lib/enums'
+import { Role, TaskStatus } from '@/lib/enums'
 import useCurrentUser from '@/lib/store/user.store'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { queryClient } from '@/lib/react-query'
 import { getErrorMessage } from '@/lib/utils'
 import { AxiosError } from 'axios'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 
 export default function AttendancePage() {
-    const { user } = useCurrentUser()
+    const { user, isLoading } = useCurrentUser()
+    const router = useRouter()
+
+
+    useEffect(() => {
+        if (!user && !isLoading) {
+            router.replace('/')
+        } else if (user && user.role === Role.EMPLOYEE) {
+            router.replace('/attendance')
+        }
+    }, [user, isLoading])
 
     // Query for attendance logs
     const { data: logs, isLoading: isLogsLoading } = useQuery<AttendanceLog[]>({

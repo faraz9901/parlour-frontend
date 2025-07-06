@@ -5,11 +5,23 @@ import { usePathname } from "next/navigation"
 import { Home, Users, ClipboardList, Clock, LogOut } from "lucide-react"
 import { Button } from "./ui/button"
 import useCurrentUser from "@/lib/store/user.store"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Role } from "@/lib/enums"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
-  const { logout } = useCurrentUser()
+  const { logout, user, isLoading } = useCurrentUser()
+
+  useEffect(() => {
+    if (!user && !isLoading) {
+      router.replace('/')
+    } else if (user && user.role === Role.EMPLOYEE) {
+      router.replace('/attendance')
+    }
+  }, [user, isLoading])
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },

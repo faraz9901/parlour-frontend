@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Role } from "@/lib/enums"
 import { toast } from "sonner"
-import { api, getErrorMessage } from "@/lib/utils"
+import { getErrorMessage } from "@/lib/utils"
 import { AxiosError } from "axios"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,16 +25,8 @@ import { validation } from "@/lib/validations"
 import Password from "@/components/ui/password"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog"
-
-type Employee = {
-  _id: string
-  name: string
-  email: string
-  password: string
-  role: Role
-  createdAt?: string
-  updatedAt?: string
-}
+import userService from "@/lib/services/user.service"
+import { Employee } from "@/lib/types"
 
 export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -43,10 +35,7 @@ export default function EmployeesPage() {
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: async () => {
-      const response = await api.get('/users')
-      return response.data.content
-    },
+    queryFn: userService.getAll,
   })
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -58,9 +47,7 @@ export default function EmployeesPage() {
 
 
   const { mutate: createUser, isPending: createUserPending } = useMutation({
-    mutationFn: async ({ employee }: { employee: Employee }) => {
-      return await api.post('/users/create', employee)
-    },
+    mutationFn: userService.create,
     onSuccess: () => {
       setIsDialogOpen(false)
       setCurrentEmployee(null)
@@ -73,9 +60,7 @@ export default function EmployeesPage() {
   })
 
   const { mutate: updateUser, isPending: updateUserPending } = useMutation({
-    mutationFn: async ({ employee }: { employee: Employee }) => {
-      return await api.put(`/users/update/${employee._id}`, employee)
-    },
+    mutationFn: userService.update,
     onSuccess: () => {
       setIsDialogOpen(false)
       setCurrentEmployee(null)
@@ -88,9 +73,7 @@ export default function EmployeesPage() {
   })
 
   const { mutate: deleteUser, isPending: deleteUserPending } = useMutation({
-    mutationFn: async (id: string) => {
-      return await api.delete(`/users/delete/${id}`)
-    },
+    mutationFn: userService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setIsDeleteDialogOpen(false)
@@ -158,9 +141,9 @@ export default function EmployeesPage() {
     }
 
     if (mode === 'update') {
-      updateUser({ employee: currentEmployee });
+      updateUser({ id: currentEmployee._id, user: currentEmployee });
     } else {
-      createUser({ employee: currentEmployee });
+      createUser(currentEmployee);
     }
   }
 

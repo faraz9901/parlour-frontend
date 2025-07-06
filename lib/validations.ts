@@ -1,6 +1,11 @@
-import { Role } from "./enums";
+import { Role, TaskStatus } from "./enums";
 
 class Validation {
+
+    empty(value: string, name?: string) {
+        return { valid: value.trim() !== "", message: `${name || "Field"} cannot be empty` };
+    }
+
     email(email: string) {
         // Email must be in the format username@domain.extension
         const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -22,6 +27,11 @@ class Validation {
     role(role: Role) {
         const validRole = Object.values(Role).includes(role);
         return { valid: validRole, message: "Invalid role" };
+    }
+
+    status(status: TaskStatus) {
+        const validStatus = Object.values(TaskStatus).includes(status);
+        return { valid: validStatus, message: "Invalid status" };
     }
 }
 

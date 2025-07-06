@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { api, getErrorMessage } from "@/lib/utils"
+import { getErrorMessage } from "@/lib/utils"
 import { AxiosError } from "axios"
 import { TaskStatus } from "@/lib/enums"
 import userService from "@/lib/services/user.service"
@@ -26,49 +26,8 @@ import { Employee, Task, TaskWithUser } from "@/lib/types"
 import { validation } from "@/lib/validations"
 import { Card, CardContent } from "@/components/ui/card"
 import TaskBadge from "@/components/TaskBadge"
+import taskService from "@/lib/services/task.service"
 
-// API Service
-const API_BASE_URL = '/tasks';
-
-const fetchTasks = async () => {
-    const response = await api.get(API_BASE_URL)
-
-    if (!response.data.success) {
-        throw new Error('Failed to fetch tasks')
-    }
-
-    return response.data.content;
-};
-
-const createTask = async (task: Omit<Task, '_id'>) => {
-    const response = await api.post(`${API_BASE_URL}/create`, task)
-
-    if (!response.data.success) {
-        throw new Error('Failed to create task')
-    }
-
-    return response.data.content;
-};
-
-const updateTask = async (task: Task) => {
-    const response = await api.put(`${API_BASE_URL}/update/${task._id}`, task)
-
-    if (!response.data.success) {
-        throw new Error('Failed to update task')
-    }
-
-    return response.data.content;
-};
-
-const deleteTask = async (id: string) => {
-    const response = await api.delete(`${API_BASE_URL}/delete/${id}`)
-
-    if (!response.data.success) {
-        throw new Error('Failed to delete task')
-    }
-
-    return id;
-};
 
 export default function TasksPage() {
     const queryClient = useQueryClient()
@@ -76,7 +35,7 @@ export default function TasksPage() {
     // Fetch tasks with React Query
     const { data: tasks = [], isLoading, isError, error } = useQuery<TaskWithUser[]>({
         queryKey: ['tasks'],
-        queryFn: fetchTasks,
+        queryFn: taskService.getAll,
     });
 
     const { data: employees = [] } = useQuery({
@@ -84,9 +43,10 @@ export default function TasksPage() {
         queryFn: userService.getAll,
     })
 
+
     // Mutations
     const createMutation = useMutation({
-        mutationFn: createTask,
+        mutationFn: taskService.create,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
             toast.success("Task created successfully");
@@ -97,7 +57,7 @@ export default function TasksPage() {
     });
 
     const updateMutation = useMutation({
-        mutationFn: updateTask,
+        mutationFn: taskService.update,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
             toast.success("Task updated successfully");
@@ -108,7 +68,7 @@ export default function TasksPage() {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: deleteTask,
+        mutationFn: taskService.delete,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
             toast.success("Task deleted successfully");

@@ -18,9 +18,8 @@ export default function useAttendanceListner() {
         });
 
         socketIo.on("attendance-update", () => {
-            console.log("Attendance updated");
             queryClient.invalidateQueries({
-                queryKey: ['attendance']
+                queryKey: ['employees-logs']
             })
         });
 

@@ -1,13 +1,43 @@
+"use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, ClipboardList, Clock, TrendingUp, Calendar, Activity } from "lucide-react"
+import Spinner from "@/components/ui/spinner"
+import useAttendanceListner from "@/hooks/useAttendanceListner"
+import attendanceService from "@/lib/services/attendance.service"
+import taskService from "@/lib/services/task.service"
+import userService from "@/lib/services/user.service"
+import { AttendanceLogWithUser, Employee, TaskWithUser } from "@/lib/types"
+import { useQuery } from "@tanstack/react-query"
+import { Users, ClipboardList, Clock, Activity } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardPage() {
+
+  useAttendanceListner()
+
+  // Fetch attendance records with React Query
+  const { data: attendanceLogs = [], isLoading: isAttendanceLoading } = useQuery<AttendanceLogWithUser[]>({
+    queryKey: ['employees-logs'],
+    queryFn: attendanceService.getEmployeesLogs
+  })
+
+  // Query for attendance logs
+  const { data: employees = [], isLoading: isEmployeesLoading } = useQuery<Employee[]>({
+    queryKey: ['employees'],
+    queryFn: userService.getEmployees,
+  })
+
+  const { data: tasks = [], isLoading: isTasksLoading } = useQuery<TaskWithUser[]>({
+    queryKey: ['tasks'],
+    queryFn: taskService.getAll,
+  })
+
+
+
   const stats = [
     {
       title: "Total Employees",
-      value: "24",
       icon: Users,
+      value: employees.length,
       href: "/dashboard/employees",
       description: "Active team members",
       color: "from-blue-500 to-blue-600",
@@ -15,8 +45,8 @@ export default function DashboardPage() {
     },
     {
       title: "Active Tasks",
-      value: "15",
       icon: ClipboardList,
+      value: tasks.length,
       href: "/dashboard/tasks",
       description: "Tasks in progress",
       color: "from-purple-500 to-purple-600",
@@ -24,8 +54,8 @@ export default function DashboardPage() {
     },
     {
       title: "Today's Attendance",
-      value: "18/24",
       icon: Clock,
+      value: `${attendanceLogs.length} / ${employees.length}`,
       href: "/dashboard/attendance",
       description: "Present today",
       color: "from-green-500 to-green-600",
@@ -56,6 +86,16 @@ export default function DashboardPage() {
       color: "from-emerald-500 to-teal-500"
     }
   ]
+
+
+
+  if (isAttendanceLoading || isEmployeesLoading || isTasksLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size={24} />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -119,79 +159,6 @@ export default function DashboardPage() {
             </Link>
           ))}
         </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5" />
-              <span>Recent Activity</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New employee registered</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Task completed</p>
-                  <p className="text-xs text-muted-foreground">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Attendance report generated</p>
-                  <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 bg-white/60 backdrop-blur-sm dark:bg-slate-900/60">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5" />
-              <span>Performance Overview</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Employee Satisfaction</span>
-                <span className="text-sm font-medium text-green-600">95%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '95%' }}></div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Task Completion Rate</span>
-                <span className="text-sm font-medium text-blue-600">87%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '87%' }}></div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Attendance Rate</span>
-                <span className="text-sm font-medium text-purple-600">92%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
